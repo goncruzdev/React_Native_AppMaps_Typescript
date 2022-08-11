@@ -1,15 +1,40 @@
-import React, {useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import MapView /*, {Marker , {PROVIDER_GOOGLE}}*/ from 'react-native-maps';
 import useLocation from '../hooks/useLocation';
 import LoadingScreen from '../pages/LoadingScreen';
 import Fab from './Fab';
 
 const Map = () => {
-  const {hasLocation, initialPosition, getCurrentLocation} = useLocation();
+  const {
+    hasLocation,
+    initialPosition,
+    getCurrentLocation,
+    followUserLocation,
+    userLocation,
+    stopFollowUserLocation,
+  } = useLocation();
+
   const mapViewRef = useRef<MapView>();
+  const following = useRef<boolean>(true);
+
+  useEffect(() => {
+    followUserLocation();
+
+    return () => {
+      stopFollowUserLocation();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!following.current) return;
+    const {latitude, longitude} = userLocation;
+    mapViewRef.current?.animateCamera({center: {latitude, longitude}});
+  }, [userLocation]);
 
   const centerPosition = async () => {
     const {latitude, longitude} = await getCurrentLocation();
+
+    following.current = true;
 
     mapViewRef.current?.animateCamera({center: {latitude, longitude}});
   };
@@ -30,7 +55,8 @@ const Map = () => {
           longitude: initialPosition.longitude,
           latitudeDelta: 0.015,
           longitudeDelta: 0.0121,
-        }}>
+        }}
+        onTouchStart={() => (following.current = false)}>
         {/* <Marker
           image={require('../assets/custom-marker.png')}
           coordinate={{latitude: 37.78825, longitude: -122.4324}}
