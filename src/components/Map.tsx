@@ -1,10 +1,14 @@
-import React, {useEffect, useRef} from 'react';
-import MapView /*, {Marker , {PROVIDER_GOOGLE}}*/ from 'react-native-maps';
+import React, {useEffect, useRef, useState} from 'react';
+import MapView, {
+  Polyline /*, {Marker , {PROVIDER_GOOGLE}}*/,
+} from 'react-native-maps';
 import useLocation from '../hooks/useLocation';
 import LoadingScreen from '../pages/LoadingScreen';
 import Fab from './Fab';
 
 const Map = () => {
+  const [showPolyline, setShowPolyline] = useState(true);
+
   const {
     hasLocation,
     initialPosition,
@@ -12,6 +16,7 @@ const Map = () => {
     followUserLocation,
     userLocation,
     stopFollowUserLocation,
+    routeLines,
   } = useLocation();
 
   const mapViewRef = useRef<MapView>();
@@ -57,6 +62,13 @@ const Map = () => {
           longitudeDelta: 0.0121,
         }}
         onTouchStart={() => (following.current = false)}>
+        {showPolyline && (
+          <Polyline
+            coordinates={routeLines}
+            strokeColor="black"
+            strokeWidth={3}
+          />
+        )}
         {/* <Marker
           image={require('../assets/custom-marker.png')}
           coordinate={{latitude: 37.78825, longitude: -122.4324}}
@@ -68,6 +80,12 @@ const Map = () => {
         iconName="compass-outline"
         onPress={centerPosition}
         style={{position: 'absolute', bottom: 20, right: 20}}
+      />
+
+      <Fab
+        iconName="brush-outline"
+        onPress={() => setShowPolyline(!showPolyline)}
+        style={{position: 'absolute', bottom: 80, right: 20}}
       />
     </>
   );
