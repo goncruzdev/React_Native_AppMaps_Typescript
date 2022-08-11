@@ -1,10 +1,18 @@
-import React from 'react';
+import React, {useRef} from 'react';
 import MapView /*, {Marker , {PROVIDER_GOOGLE}}*/ from 'react-native-maps';
 import useLocation from '../hooks/useLocation';
 import LoadingScreen from '../pages/LoadingScreen';
+import Fab from './Fab';
 
 const Map = () => {
-  const {hasLocation, initialPosition} = useLocation();
+  const {hasLocation, initialPosition, getCurrentLocation} = useLocation();
+  const mapViewRef = useRef<MapView>();
+
+  const centerPosition = async () => {
+    const {latitude, longitude} = await getCurrentLocation();
+
+    mapViewRef.current?.animateCamera({center: {latitude, longitude}});
+  };
 
   if (!hasLocation) {
     return <LoadingScreen />;
@@ -14,6 +22,7 @@ const Map = () => {
     <>
       <MapView
         //provider={PROVIDER_GOOGLE}  remove if not using Google Maps
+        ref={el => (mapViewRef.current = el!)}
         showsUserLocation
         style={{flex: 1}}
         region={{
@@ -29,6 +38,11 @@ const Map = () => {
           description="descripcion"
         /> */}
       </MapView>
+      <Fab
+        iconName="compass-outline"
+        onPress={centerPosition}
+        style={{position: 'absolute', bottom: 20, right: 20}}
+      />
     </>
   );
 };
